@@ -1,20 +1,23 @@
 Name:		doxia-core
-Version:	2.0.0
+Version:	2.2.0
 Release:	1
 Summary:	Doxia core classes
 Group:		Development/Java
 License:	ASL 2.0
 URL:		https://maven.apache.org/doxia/doxia/
-Source0:	https://github.com/apache/maven-doxia/archive/refs/tags/doxia-%{version}.tar.gz
+Source0:	https://github.com/apache/maven-doxia/archive/refs/tags/doxia-%{version}.tar.gz#/doxia-%{version}.tar.gz
 BuildArch:	noarch
 BuildRequires:	python
 BuildRequires:	mvn(org.apache.maven.doxia:doxia-sink-api)
+BuildRequires:	doxia-sink-api >= 2.2.0
+Requires:	doxia-sink-api >= 2.2.0
 BuildRequires:	mvn(org.slf4j:slf4j-api)
+BuildRequires:	mvn(org.slf4j:slf4j-parent:pom::)
 BuildRequires:	mvn(javax.inject:javax.inject)
 BuildRequires:	mvn(org.codehaus.plexus:plexus-utils)
-BuildRequires:	mvn(commons-io:commons-io)
-BuildRequires:	mvn(org.apache.commons:commons-text)
-BuildRequires:	mvn(org.apache.commons:commons-lang3)
+BuildRequires:	plexus-utils >= 3.6.2
+Requires:	plexus-utils >= 3.6.2
+BuildRequires:	mvn(org.codehaus.plexus:plexus:pom::)
 # Literal, so the first rpmbuild -bs records them before sysjar is installed.
 BuildRequires:	maven
 BuildRequires:	java-current-devel
@@ -22,9 +25,10 @@ BuildSystem:	maven
 BuildOption(install):	--file-name %{name}
 
 %description
-Doxia parses source documents into a sink. The XML pull parser
-classes live in plexus-utils, so this build does not use plexus-xml.
-Commons Text 1.15 provides the StringEscapeUtils methods HtmlTools calls.
+Doxia parses source documents into a sink. XML pull-parser classes
+come from plexus-utils. The SinkEventAttributeSet in this jar is the
+deprecated name; the class lives in doxia-sink-api. HTML tag names
+come from HtmlTag, and commons-io is no longer a compile dependency.
 
 %prep
 %autosetup -n maven-doxia-doxia-%{version}
@@ -51,15 +55,15 @@ add(root, "groupId", "org.apache.maven.doxia")
 add(root, "artifactId", "doxia-core")
 add(root, "version", "%{version}")
 add(root, "name", "Doxia :: Core")
+props = ET.SubElement(root, tag("properties"))
+add(props, "maven.compiler.release", "8")
+add(props, "project.build.sourceEncoding", "UTF-8")
 deps = ET.SubElement(root, tag("dependencies"))
 for group, artifact, version in (
     ("org.apache.maven.doxia", "doxia-sink-api", "%{version}"),
     ("org.slf4j", "slf4j-api", "1.7.36"),
     ("javax.inject", "javax.inject", "1"),
-    ("org.codehaus.plexus", "plexus-utils", "3.6.0"),
-    ("commons-io", "commons-io", "2.22.0"),
-    ("org.apache.commons", "commons-text", "1.15.0"),
-    ("org.apache.commons", "commons-lang3", "3.21.0"),
+    ("org.codehaus.plexus", "plexus-utils", "3.6.2"),
 ):
     dep = ET.SubElement(deps, tag("dependency"))
     add(dep, "groupId", group)
